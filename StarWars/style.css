@@ -169,3 +169,100 @@ footer{
 .copyrigth{
     font-weight: 500;
 }
+
+/* Modal */
+.modal {
+    visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.5);
+    position: fixed;
+    top: 0;
+  }
+  
+  .modal-content {
+    width: 25vw;
+    height: 70vh;
+    background-color: #0d0d0d;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    row-gap: 15px;
+    padding: 30px 10px;
+    align-items: center;
+  }
+  
+  .character-image {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background-position: 50% 10%;
+    background-size: cover;
+  }
+  
+  .character-details {
+    font-family: 'Star Wars', sans-serif;
+    font-size: 1rem;
+    font-weight: lighter;
+    color: gold;
+  }
+
+  /* Responsividade */
+  @media (max-width: 1024px) {
+    .main-container {
+      padding: 20px;
+    }
+    
+    h2 {
+      font-size: 1.4rem;
+    }
+  
+    .modal-content {
+      width: 30vw;
+    }
+  }
+  
+  @media (max-width: 834px) {
+    h2 {
+      text-align: center;
+    }
+  
+    .modal-content {
+      width: 50vw;
+      height: 50vh;
+    }
+  }
+  
+  @media (max-width: 414px) {
+    h2 {
+      font-size: 1.1rem;
+    }
+  
+    .logo {
+      width: 200px;
+    }
+    
+    .logo-img {
+      width: 35%;
+    }
+    
+    .logo-text {
+      font-size: 0.9rem;
+    }
+    
+    .social-media {
+      width: 90px;
+    }
+  
+    .modal-content {
+      width: 95vw;
+      height: 70vh;
+    }
+  
+    .footer-logo {
+      font-size: 1.1rem;
+    }
+  }
