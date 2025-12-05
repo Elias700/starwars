@@ -1,166 +1,179 @@
 let currentPageUrl = 'https://swapi.dev/api/people/';
+let nextUrl = null;      // Variável para armazenar a URL da próxima página
+let previousUrl = null;  // Variável para armazenar a URL da página anterior
 
 window.onload = async () => {
-  try {
-    await loadCharacters(currentPageUrl);
-  } catch (error) {
-    console.log(error);
-    alert('Erro ao carregar cards');
-  }
+    try {
+        await loadCharacters(currentPageUrl);
+    } catch (error) {
+        console.log(error);
+        alert('Erro ao carregar cards');
+    }
 
-  const nextButton = document.getElementById('next-button');
-  nextButton.addEventListener('click', loadNextPage);
+    const nextButton = document.getElementById('next-button');
+    nextButton.addEventListener('click', loadNextPage);
 
-  const backButton = document.getElementById('back-button');
-  backButton.addEventListener('click', loadPreviousPage);
+    const backButton = document.getElementById('back-button');
+    backButton.addEventListener('click', loadPreviousPage);
 };
 
+// Função robusta para extrair o ID numérico da URL do personagem
+function getCharacterId(url) {
+    const urlWithoutSlash = url.replace(/\/$/, ''); // Remove barra final
+    const urlParts = urlWithoutSlash.split('/');
+    return urlParts[urlParts.length - 1]; // Último elemento = ID
+}
+
+// Função para gerar URL da imagem com fallback
+function getCharacterImage(id) {
+    return `
+        https://starwars-visualguide.com/assets/img/characters/${id}.jpg,
+        https://starwars-visualguide.com/assets/img/characters/${id}.jpeg,
+        https://starwars-visualguide.com/assets/img/placeholder.jpg
+    `;
+}
+
+// Função principal para carregar personagens
 async function loadCharacters(url) {
-  const mainContent = document.getElementById('main-content');
-  mainContent.innerHTML = ''; // Limpa os resultados anteriores
+    const mainContent = document.getElementById('main-content');
+    mainContent.innerHTML = ''; // Limpa resultados anteriores
 
-  try {
-    const response = await fetch(url);
-    const responseJson = await response.json();
+    try {
+        const response = await fetch(url);
+        const responseJson = await response.json();
 
-    responseJson.results.forEach((character) => {
-      const card = document.createElement("div");
-      card.style.backgroundImage = `url('https://starwars-visualguide.com/assets/img/characters/${character.url.replace(/\D/g, "")}.jpg')`
-      card.className = "cards"
-      const characterNameBG = document.createElement("div")
-      characterNameBG.className = "character-name-bg"
-      const characterName = document.createElement("span")
-      characterName.className = "character-name"
-      characterName.innerText = `${character.name}`
-      characterNameBG.appendChild(characterName)
-      card.appendChild(characterNameBG)
-      card.onclick = () => {
-        const modal = document.getElementById("modal")
-        modal.style.visibility = "visible"
+        // Paginação
+        nextUrl = responseJson.next;
+        previousUrl = responseJson.previous;
 
-        const modalContent = document.getElementById("modal-content")
-        modalContent.innerHTML = '';
+        responseJson.results.forEach((character) => {
+            const characterId = getCharacterId(character.url);
 
-        const characterImage = document.createElement("div")
-        characterImage.style.backgroundImage = `url('https://starwars-visualguide.com/assets/img/characters/${character.url.replace(/\D/g, "")}.jpg')`
-        characterImage.className = "character-image"
+            const card = document.createElement("div");
+            card.className = "cards";
+            card.style.backgroundImage = `url('${getCharacterImage(characterId)}')`;
 
-        const name = document.createElement("span")
-        name.className = "character-details"
-        name.innerText = `Nome: ${character.name}`
+            const characterNameBG = document.createElement("div");
+            characterNameBG.className = "character-name-bg";
 
-        const characterHeight = document.createElement("span")
-        characterHeight.className = "character-details"
-        characterHeight.innerText = `Altura: ${convertHeight(character.height)}`
+            const characterName = document.createElement("span");
+            characterName.className = "character-name";
+            characterName.innerText = character.name;
 
-        const mass = document.createElement("span")
-        mass.className = "character-details"
-        mass.innerText = `Peso: ${convertMass(character.mass)}`
+            characterNameBG.appendChild(characterName);
+            card.appendChild(characterNameBG);
 
-        const eyeColor = document.createElement("span")
-        eyeColor.className = "character-details"
-        eyeColor.innerText = `Cor dos olhos: ${convertEyeColor(character.eye_color)}`
+            // Modal
+            card.onclick = () => {
+                const modal = document.getElementById("modal");
+                modal.style.visibility = "visible";
 
-        const birthYear = document.createElement("span")
-        birthYear.className = "character-details"
-        birthYear.innerText = `Nascimento: ${convertBirthYear(character.birth_year)}`
+                const modalContent = document.getElementById("modal-content");
+                modalContent.innerHTML = '';
 
-        modalContent.appendChild(characterImage)
-        modalContent.appendChild(name)
-        modalContent.appendChild(characterHeight)
-        modalContent.appendChild(mass)
-        modalContent.appendChild(eyeColor)
-        modalContent.appendChild(birthYear)
-      }
-      const mainContent = document.getElementById('main-content');
-      mainContent.appendChild(card);
+                const characterImage = document.createElement("div");
+                characterImage.className = "character-image";
+                characterImage.style.backgroundImage = `url('${getCharacterImage(characterId)}')`;
 
-    });
+                const name = document.createElement("span");
+                name.className = "character-details";
+                name.innerText = `Nome: ${character.name}`;
 
-    // Habilita ou desabilita os botões de acordo com a presença de URLs de próxima e página anterior
-    const nextButton = document.getElementById('next-button');
-    const backButton = document.getElementById('back-button');
-    nextButton.disabled = !responseJson.next;
-    backButton.disabled = !responseJson.previous;
+                const characterHeight = document.createElement("span");
+                characterHeight.className = "character-details";
+                characterHeight.innerText = `Altura: ${convertHeight(character.height)}`;
 
-    backButton.style.visibility = responseJson.previous ? "visible" : "hidden";
+                const mass = document.createElement("span");
+                mass.className = "character-details";
+                mass.innerText = `Peso: ${convertMass(character.mass)}`;
 
-    currentPageUrl = url;
-  } catch (error) {
-    throw new Error('Erro ao carregar personagens');
-  }
+                const eyeColor = document.createElement("span");
+                eyeColor.className = "character-details";
+                eyeColor.innerText = `Cor dos olhos: ${convertEyeColor(character.eye_color)}`;
+
+                const birthYear = document.createElement("span");
+                birthYear.className = "character-details";
+                birthYear.innerText = `Nascimento: ${convertBirthYear(character.birth_year)}`;
+
+                modalContent.appendChild(characterImage);
+                modalContent.appendChild(name);
+                modalContent.appendChild(characterHeight);
+                modalContent.appendChild(mass);
+                modalContent.appendChild(eyeColor);
+                modalContent.appendChild(birthYear);
+            }
+
+            mainContent.appendChild(card);
+        });
+
+        // Atualiza botões de navegação
+        const nextButton = document.getElementById('next-button');
+        const backButton = document.getElementById('back-button');
+        nextButton.disabled = !nextUrl;
+        backButton.disabled = !previousUrl;
+        backButton.style.visibility = previousUrl ? "visible" : "hidden";
+
+        currentPageUrl = url;
+    } catch (error) {
+        throw new Error('Erro ao carregar personagens');
+    }
 }
 
+// Função para fechar modal
 function hideModal() {
-  const modal = document.getElementById("modal")
-  modal.style.visibility = "hidden"
+    const modal = document.getElementById("modal");
+    modal.style.visibility = "hidden";
 }
 
+// Funções de conversão
 function convertEyeColor(eyeColor) {
-  const cores = {
-    blue: "azul",
-    brown: "castanho",
-    green: "verde",
-    yellow: "amarelo",
-    black: "preto",
-    pink: "rosa",
-    red: "vermelho",
-    orange: "laranja",
-    hazel: "avela",
-    unknown: "desconhecida"
-  };
-
-  return cores[eyeColor.toLowerCase()] || eyeColor;
+    const cores = {
+        blue: "azul",
+        brown: "castanho",
+        green: "verde",
+        yellow: "amarelo",
+        black: "preto",
+        pink: "rosa",
+        red: "vermelho",
+        orange: "laranja",
+        hazel: "avela",
+        unknown: "desconhecida"
+    };
+    return cores[eyeColor.toLowerCase()] || eyeColor;
 }
 
 function convertHeight(height) {
-  if (height === "unknown") {
-    return "desconhecida";
-  }
-  
-  return (height / 100).toFixed(2);
+    if (height === "unknown") return "desconhecida";
+    return (height / 100).toFixed(2);
 }
 
 function convertMass(mass) {
-  if (mass === "unknown") {
-    return "desconhecido";
-  }
-  
-  return `${mass} kg`;
+    if (mass === "unknown") return "desconhecido";
+    return `${mass} kg`;
 }
 
 function convertBirthYear(birthYear) {
-  if (birthYear === "unknown") {
-    return "desconhecido";
-  }
-  
-  return birthYear;
+    if (birthYear === "unknown") return "desconhecido";
+    return birthYear;
 }
 
+// Navegação
 async function loadNextPage() {
-  if (!currentPageUrl) return;
-
-  try {
-    const response = await fetch(currentPageUrl);
-    const responseJson = await response.json();
-
-    await loadCharacters(responseJson.next);
-  } catch (error) {
-    console.log(error);
-    alert('Erro ao carregar a próxima página');
-  }
+    if (!nextUrl) return;
+    try {
+        await loadCharacters(nextUrl);
+    } catch (error) {
+        console.log(error);
+        alert('Erro ao carregar a próxima página');
+    }
 }
 
 async function loadPreviousPage() {
-  if (!currentPageUrl) return;
-
-  try {
-    const response = await fetch(currentPageUrl);
-    const responseJson = await response.json();
-
-    await loadCharacters(responseJson.previous);
-  } catch (error) {
-    console.log(error);
-    alert('Erro ao carregar a página anterior');
-  }
+    if (!previousUrl) return;
+    try {
+        await loadCharacters(previousUrl);
+    } catch (error) {
+        console.log(error);
+        alert('Erro ao carregar a página anterior');
+    }
 }
